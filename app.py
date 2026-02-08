@@ -75,3 +75,34 @@ if st.button("Train AI Model"):
     
     # Save the model in the session so we can use it for the buttons later
     st.session_state['health_model'] = model
+    # --- STEP 3: PREDICTION INTERFACE ---
+
+st.header("🔍 Personal Health Risk Predictor")
+st.write("Enter patient vitals below to check for potential health risks.")
+
+# Create columns for the input fields
+col1, col2 = st.columns(2)
+
+with col1:
+    hr = st.number_input("Heart Rate (bpm)", min_value=40, max_value=200, value=75)
+    temp = st.number_input("Temperature (°C)", min_value=30.0, max_value=45.0, value=36.5)
+
+with col2:
+    sys = st.number_input("Systolic BP (top number)", min_value=80, max_value=200, value=120)
+    dia = st.number_input("Diastolic BP (bottom number)", min_value=40, max_value=130, value=80)
+
+# The Prediction Button logic
+if st.button("Analyze My Vitals"):
+    if 'health_model' in st.session_state:
+        # Prepare the input for the model
+        input_data = np.array([[hr, temp, sys, dia]])
+        
+        # Make the prediction
+        prediction = st.session_state['health_model'].predict(input_data)
+        
+        if prediction[0] == 1:
+            st.error("⚠️ ALERT: High Risk Detected. Please consult a healthcare professional.")
+        else:
+            st.success("✅ NORMAL: Your vitals appear to be within the healthy range.")
+    else:
+        st.warning("Please click 'Train AI Model' above first to prepare the AI.")
