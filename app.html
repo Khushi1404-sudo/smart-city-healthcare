@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthMate AI - Your Personal Health Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ========== CSS RESET & BASE STYLES ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg-primary: #0a1628; --bg-secondary: #1e293b; --bg-tertiary: #334155; --text-primary: #ffffff; --text-secondary: #94a3b8; --text-muted: #64748b; --accent-blue: #0ea5e9; --accent-green: #10b981; --accent-red: #ef4444; --accent-yellow: #f59e0b; --accent-purple: #8b5cf6; --border-color: #1e293b; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; background-color: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+        #app { max-width: 430px; margin: 0 auto; min-height: 100vh; background-color: var(--bg-primary); position: relative; }
+        /* ========== HEADER STYLES ========== */ .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background-color: var(--bg-primary); z-index: 100; }
+        .back-button, .header-action { width: 44px; height: 44px; border-radius: 22px; background-color: var(--bg-secondary); border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: background-color 0.2s; }
+        .back-button:hover, .header-action:hover { background-color: var(--bg-tertiary); }
+        .header-title { font-size: 20px; font-weight: bold; }
+        .header-title-container { flex: 1; margin-left: 12px; }
+        .header-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+        .online-indicator { width: 10px; height: 10px; border-radius: 50%; background-color: var(--accent-green); }
+        /* ========== HOME PAGE STYLES ========== */ .home-container { padding: 20px; padding-bottom: 40px; }
+        .greeting { font-size: 16px; color: var(--text-muted); margin-bottom: 4px; }
+        .title { font-size: 28px; font-weight: bold; margin-bottom: 8px; }
+        .subtitle { font-size: 15px; color: var(--text-secondary); }
+        .home-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+        /* Main Card */ .main-card { background-color: var(--accent-blue); border-radius: 24px; padding: 24px; margin-bottom: 20px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .main-card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(14, 165, 233, 0.3); }
+        .main-card-icon { width: 70px; height: 70px; border-radius: 35px; background-color: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 32px; }
+        .main-card-title { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
+        .main-card-subtitle { font-size: 15px; color: rgba(255, 255, 255, 0.8); line-height: 22px; margin-bottom: 20px; }
+        .main-card-button { display: inline-flex; align-items: center; gap: 8px; background-color: #fff; color: var(--accent-blue); padding: 12px 20px; border-radius: 12px; font-size: 16px; font-weight: 600; border: none; cursor: pointer; transition: transform 0.2s; }
+        .main-card-button:hover { transform: scale(1.02); }
+        /* Quick Actions */ .quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+        .quick-action-card { background-color: var(--bg-secondary); padding: 16px; border-radius: 16px; text-align: center; cursor: pointer; transition: transform 0.2s, background-color 0.2s; border: none; color: var(--text-primary); }
+        .quick-action-card:hover { transform: translateY(-2px); background-color: var(--bg-tertiary); }
+        .quick-action-icon { width: 50px; height: 50px; border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 20px; }
+        .quick-action-text { font-size: 13px; font-weight: 600; }
+        /* Section Title */ .section-title { font-size: 20px; font-weight: bold; margin-bottom: 16px; }
+        /* Tips Grid */ .tips-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; }
+        .tip-card { background-color: var(--bg-secondary); padding: 16px; border-radius: 16px; }
+        .tip-icon { width: 44px; height: 44px; border-radius: 12px; background-color: rgba(14, 165, 233, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--accent-blue); font-size: 20px; }
+        .tip-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .tip-content { font-size: 13px; color: var(--text-secondary); line-height: 18px; }
+        /* Disclaimer */ .disclaimer { display: flex; align-items: flex-start; gap: 10px; background-color: var(--bg-secondary); padding: 16px; border-radius: 12px; }
+        .disclaimer i { color: var(--text-muted); font-size: 18px; margin-top: 2px; }
+        .disclaimer-text { font-size: 12px; color: var(--text-muted); line-height: 18px; }
+        /* ========== CHAT PAGE STYLES ========== */ .chat-container { display: flex; flex-direction: column; height: calc(100vh - 73px); }
+        .messages-container { flex: 1; overflow-y: auto; padding: 16px; }
+        .welcome-container { text-align: center; padding: 40px 20px; }
+        .welcome-icon { width: 100px; height: 100px; border-radius: 50px; background-color: rgba(14, 165, 233, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 48px; color: var(--accent-blue); }
+        .welcome-title { font-size: 22px; font-weight: bold; margin-bottom: 12px; }
+        .welcome-text { font-size: 15px; color: var(--text-secondary); line-height: 22px; margin-bottom: 24px; }
+        .suggestions-title { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
+        .suggestion-chip { background-color: var(--bg-secondary); border: 1px solid var(--bg-tertiary); padding: 12px 20px; border-radius: 20px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s; color: var(--text-secondary); font-size: 14px; }
+        .suggestion-chip:hover { background-color: var(--bg-tertiary); }
+        /* Messages */ .message-container { display: flex; margin-bottom: 16px; align-items: flex-end; }
+        .message-container.user { justify-content: flex-end; }
+        .message-container.assistant { justify-content: flex-start; }
+        .avatar { width: 36px; height: 36px; border-radius: 18px; background-color: rgba(14, 165, 233, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 10px; color: var(--accent-blue); font-size: 16px; flex-shrink: 0; }
+        .message-bubble { max-width: 75%; padding: 14px; border-radius: 20px; font-size: 15px; line-height: 22px; }
+        .message-bubble.user { background-color: var(--accent-blue); border-bottom-right-radius: 4px; }
+        .message-bubble.assistant { background-color: var(--bg-secondary); color: #e2e8f0; border-bottom-left-radius: 4px; }
+        .typing-indicator { display: flex; align-items: center; gap: 10px; background-color: var(--bg-secondary); padding: 12px 16px; border-radius: 20px; }
+        .typing-text { color: var(--text-secondary); font-size: 14px; }
+        .spinner { width: 20px; height: 20px; border: 2px solid var(--bg-tertiary); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Input Area */ .input-container { padding: 12px 16px 16px; border-top: 1px solid var(--border-color); background-color: var(--bg-primary); }
+        .input-wrapper { display: flex; align-items: flex-end; background-color: var(--bg-secondary); border-radius: 24px; padding: 6px 6px 6px 16px; }
+        .chat-input { flex: 1; background: none; border: none; color: var(--text-primary); font-size: 16px; padding: 8px 0; resize: none; max-height: 100px; font-family: inherit; }
+        .chat-input::placeholder { color: var(--text-muted); }
+        .chat-input:focus { outline: none; }
+        .send-button { width: 40px; height: 40px; border-radius: 20px; background-color: var(--accent-blue); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background-color 0.2s; }
+        .send-button:disabled { background-color: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; }
+        .send-button:not(:disabled):hover { background-color: #0284c7; }
+        .input-disclaimer { font-size: 11px; color: #475569; text-align: center; margin-top: 8px; }
+        /* ========== METRICS PAGE STYLES ========== */ .metrics-container { padding: 16px; padding-bottom: 40px; }
+        .info-card { display: flex; align-items: flex-start; gap: 12px; background-color: rgba(14, 165, 233, 0.1); border-radius: 12px; padding: 14px; margin-bottom: 20px; }
+        .info-card i { color: var(--accent-blue); font-size: 20px; }
+        .info-text { font-size: 14px; color: var(--text-secondary); line-height: 20px; }
+        .slider-card { background-color: var(--bg-secondary); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .slider-label-row { display: flex; align-items: center; }
+        .slider-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; }
+        .slider-label { font-size: 16px; font-weight: 600; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .value-container { display: flex; align-items: baseline; justify-content: center; margin-bottom: 16px; }
+        .value-text { font-size: 42px; font-weight: bold; }
+        .unit-text { font-size: 18px; color: var(--text-muted); margin-left: 6px; }
+        .slider-container { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+        .range-text { font-size: 12px; color: var(--text-muted); width: 36px; text-align: center; }
+        .slider-wrapper { flex: 1; position: relative; }
+        input[type="range"] { width: 100%; height: 6px; -webkit-appearance: none; appearance: none; background: var(--bg-tertiary); border-radius: 3px; outline: none; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 3px solid var(--bg-primary); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
+        input[type="range"].normal::-webkit-slider-thumb { background: var(--accent-green); }
+        input[type="range"].warning::-webkit-slider-thumb { background: var(--accent-yellow); }
+        input[type="range"].danger::-webkit-slider-thumb { background: var(--accent-red); }
+        .normal-text { font-size: 12px; color: var(--text-muted); text-align: center; }
+        .bp-summary-card { background-color: var(--bg-secondary); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center; }
+        .bp-summary-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+        .bp-summary-value { font-size: 36px; font-weight: bold; }
+        .bp-summary-unit { font-size: 18px; font-weight: normal; color: var(--text-muted); }
+        .analyze-button { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background-color: var(--accent-blue); border: none; border-radius: 14px; padding: 16px 24px; color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; margin-bottom: 20px; transition: background-color 0.2s; }
+        .analyze-button:hover:not(:disabled) { background-color: #0284c7; }
+        .analyze-button:disabled { background-color: rgba(14, 165, 233, 0.5); cursor: not-allowed; }
+        .analysis-card { background-color: var(--bg-secondary); border-radius: 16px; padding: 18px; margin-bottom: 20px; }
+        .analysis-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .analysis-header i { color: var(--accent-blue); font-size: 24px; }
+        .analysis-title { font-size: 18px; font-weight: 600; }
+        .analysis-text { font-size: 15px; color: #e2e8f0; line-height: 24px; white-space: pre-wrap; }
+        /* ========== HISTORY PAGE STYLES ========== */ .history-container { padding: 16px; min-height: calc(100vh - 73px); }
+        .session-card { display: flex; background-color: var(--bg-secondary); border-radius: 16px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: background-color 0.2s; }
+        .session-card:hover { background-color: var(--bg-tertiary); }
+        .session-icon { width: 48px; height: 48px; border-radius: 24px; background-color: rgba(14, 165, 233, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 12px; color: var(--accent-blue); font-size: 20px; flex-shrink: 0; }
+        .session-content { flex: 1; min-width: 0; }
+        .session-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .session-preview { font-size: 14px; color: var(--text-secondary); line-height: 20px; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .session-meta { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
+        .message-count { margin-left: 12px; }
+        .delete-button { background: none; border: none; color: var(--accent-red); cursor: pointer; padding: 8px; font-size: 18px; transition: opacity 0.2s; }
+        .delete-button:hover { opacity: 0.7; }
+        /* Empty State */ .empty-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; text-align: center; }
+        .empty-icon { width: 120px; height: 120px; border-radius: 60px; background-color: var(--bg-secondary); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; font-size: 48px; color: var(--bg-tertiary); }
+        .empty-title { font-size: 22px; font-weight: bold; margin-bottom: 12px; }
+        .empty-text { font-size: 15px; color: var(--text-muted); line-height: 22px; margin-bottom: 24px; }
+        .start-button { display: inline-flex; align-items: center; gap: 8px; background-color: var(--accent-blue); color: #fff; padding: 14px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; border: none; cursor: pointer; transition: background-color 0.2s; }
+        .start-button:hover { background-color: #0284c7; }
+        /* Metrics History Card */ .metric-record-card { background-color: var(--bg-secondary); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+        .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .record-date { font-size: 14px; color: var(--text-secondary); }
+        .bp-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .metrics-grid { display: flex; justify-content: space-between; }
+        .metric-item { flex: 1; text-align: center; }
+        .metric-icon { width: 36px; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 16px; }
+        .metric-value { font-size: 18px; font-weight: bold; }
+        .metric-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        /* Loading */ .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+        .loading-text { color: var(--text-muted); margin-top: 12px; font-size: 15px; }
+        .loader { width: 40px; height: 40px; border: 3px solid var(--bg-tertiary); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        /* Scrollbar */ ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        </div>
+
+    <script>
+        // ========== API CONFIGURATION ==========
+        const API_URL = window.location.origin;
+
+        // ========== STATE MANAGEMENT ==========
+        let currentPage = 'home';
+        let chatMessages = [];
+        let currentSessionId = null;
+        let currentSessionTitle = 'New Health Check';
+        let sessions = [];
+        let metrics = [];
+        let healthTips = [];
+
+        // Vital signs state
+        let vitals = {
+            heartRate: 72,
+            bodyTemperature: 98.6,
+            systolicBP: 120,
+            diastolicBP: 80
+        };
+
+        // ========== UTILITY FUNCTIONS ==========
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        function getStatusColor(value, ranges) {
+            if (value < ranges.normal.min) return 'var(--accent-yellow)';
+            if (value > ranges.normal.max) return 'var(--accent-red)';
+            return 'var(--accent-green)';
+        }
+
+        function getStatusText(value, ranges) {
+            if (value < ranges.normal.min) return 'Low';
+            if (value > ranges.normal.max) return 'High';
+            return 'Normal';
+        }
+
+        function getSliderClass(value, ranges) {
+            if (value < ranges.normal.min) return 'warning';
+            if (value > ranges.normal.max) return 'danger';
+            return 'normal';
+        }
+
+        const vitalRanges = {
+            heartRate: { min: 40, max: 180, normal: { min: 60, max: 100 }, unit: 'bpm', step: 1 },
+            bodyTemperature: { min: 95, max: 104, normal: { min: 97, max: 99 }, unit: '°F', step: 0.1 },
+            systolicBP: { min: 70, max: 200, normal: { min: 90, max: 120 }, unit: 'mmHg', step: 1 },
+            diastolicBP: { min: 40, max: 130, normal: { min: 60, max: 80 }, unit: 'mmHg', step: 1 }
+        };
+
+        // ========== API FUNCTIONS ==========
+        async function fetchHealthTips() {
+            try {
+                const response = await fetch(`${API_URL}/api/tips`);
+                healthTips = await response.json();
+                return healthTips;
+            } catch (error) {
+                console.error('Error fetching tips:', error);
+                return [];
+            }
+        }
+
+        async function sendChatMessage(message) {
+            try {
+                const response = await fetch(`${API_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        message: message
+                    })
+                });
+                const data = await response.json();
+                currentSessionId = data.session_id;
+                currentSessionTitle = data.title;
+                return data.response;
+            } catch (error) {
+                console.error('Error sending message:', error);
+                throw error;
+            }
+        }
+
+        async function fetchSessions() {
+            try {
+                const response = await fetch(`${API_URL}/api/sessions`);
+                sessions = await response.json();
+                return sessions;
+            } catch (error) {
+                console.error('Error fetching sessions:', error);
+                return [];
+            }
+        }
+
+        async function fetchSession(sessionId) {
+            try {
+                const response = await fetch(`${API_URL}/api/sessions/${sessionId}`);
+                const session = await response.json();
+                return session;
+            } catch (error) {
+                console.error('Error fetching session:', error);
+                return null;
+            }
+        }
+
+        async function deleteSession(sessionId) {
+            try {
+                await fetch(`${API_URL}/api/sessions/${sessionId}`, { method: 'DELETE' });
+                return true;
+            } catch (error) {
+                console.error('Error deleting session:', error);
+                return false;
+            }
+        }
+
+        async function saveMetrics() {
+            try {
+                const response = await fetch(`${API_URL}/api/metrics`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        heart_rate: Math.round(vitals.heartRate),
+                        body_temperature: parseFloat(vitals.bodyTemperature.toFixed(1)),
+                        systolic_bp: Math.round(vitals.systolicBP),
+                        diastolic_bp: Math.round(vitals.diastolicBP)
+                    })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Error saving metrics:', error);
+                throw error;
+            }
+        }
+
+        async function analyzeVitals() {
+            try {
+                const response = await fetch(`${API_URL}/api/analyze-vitals`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        heart_rate: Math.round(vitals.heartRate),
+                        body_temperature: parseFloat(vitals.bodyTemperature.toFixed(1)),
+                        systolic_bp: Math.round(vitals.systolicBP),
+                        diastolic_bp: Math.round(vitals.diastolicBP)
+                    })
+                });
+                const data = await response.json();
+                return data.analysis;
+            } catch (error) {
+                console.error('Error analyzing vitals:', error);
+                throw error;
+            }
+        }
+
+        async function fetchMetrics() {
+            try {
+                const response = await fetch(`${API_URL}/api/metrics`);
+                metrics = await response.json();
+                return metrics;
+            } catch (error) {
+                console.error('Error fetching metrics:', error);
+                return [];
+            }
+        }
+
+        // ========== NAVIGATION ==========
+        function navigate(page, params = {}) {
+            currentPage = page;
+            
+            if (page === 'chat' && !params.sessionId) {
+                chatMessages = [];
+                currentSessionId = null;
+                currentSessionTitle = 'New Health Check';
+            }
+            
+            render();
+            
+            if (page === 'chat' && params.sessionId) {
+                loadSession(params.sessionId);
+            }
+        }
+
+        async function loadSession(sessionId) {
+            const session = await fetchSession(sessionId);
+            if (session) {
+                chatMessages = session.messages || [];
+                currentSessionId = session.id;
+                currentSessionTitle = session.title;
+                render();
+                scrollToBottom();
+            }
+        }
+
+        // ========== RENDER FUNCTIONS ==========
+        function render() {
+            const app = document.getElementById('app');
+            
+            switch (currentPage) {
+                case 'home':
+                    renderHome(app);
+                    break;
+                case 'chat':
+                    renderChat(app);
+                    break;
+                case 'history':
+                    renderHistory(app);
+                    break;
+                case 'metrics':
+                    renderMetrics(app);
+                    break;
+                case 'metrics-history':
+                    renderMetricsHistory(app);
+                    break;
+                default:
+                    renderHome(app);
+            }
+        }
+
+        function renderHome(container) {
+            const tipsHtml = healthTips.map(tip => {
+                const iconMap = {
+                    water: 'fa-droplet',
+                    moon: 'fa-moon',
+                    fitness: 'fa-dumbbell',
+                    nutrition: 'fa-apple-whole',
+                    brain: 'fa-lightbulb',
+                    medkit: 'fa-kit-medical'
+                };
+                return `
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas ${iconMap[tip.icon] || 'fa-heart'}"></i>
+                        </div>
+                        <div class="tip-title">${tip.title}</div>
+                        <div class="tip-content">${tip.content}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="home-container">
+                    <div class="home-header">
+                        <div>
+                            <div class="greeting">Hello there!</div>
+                            <h1 class="title">HealthMate AI</h1>
+                            <div class="subtitle">Your personal AI health assistant</div>
+                        </div>
+                        <button class="header-action" onclick="navigate('history')">
+                            <i class="fas fa-clock"></i>
+                        </button>
+                    </div>
+
+                    <div class="main-card" onclick="navigate('chat')">
+                        <div class="main-card-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="main-card-title">Start Health Check</div>
+                        <div class="main-card-subtitle">
+                            Describe your symptoms and get AI-powered health insights
+                        </div>
+                        <button class="main-card-button">
+                            Chat Now <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="quick-actions">
+                        <button class="quick-action-card" onclick="navigate('chat')">
+                            <div class="quick-action-icon" style="background-color: rgba(16, 185, 129, 0.1); color: var(--accent-green);">
+                                <i class="fas fa-comment-medical"></i>
+                            </div>
+                            <div class="quick-action-text">Symptom Check</div>
+                        </button>
+                        <button class="quick-action-card" onclick="navigate('metrics')">
+                            <div class="quick-action-icon" style="background-color: rgba(239, 68, 68, 0.1); color: var(--accent-red);">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <div class="quick-action-text">Vital Signs</div>
+                        </button>
+                        <button class="quick-action-card" onclick="navigate('history')">
+                            <div class="quick-action-icon" style="background-color: rgba(139, 92, 246, 0.1); color: var(--accent-purple);">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="quick-action-text">History</div>
+                        </button>
+                    </div>
+
+                    <h2 class="section-title">Daily Health Tips</h2>
+                    <div class="tips-grid">
+                        ${tipsHtml || '<div class="loading-container"><div class="loader"></div></div>'}
+                    </div>
+
+                    <div class="disclaimer">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="disclaimer-text">
+                            This app provides general health information only. Always consult a healthcare professional for medical advice.
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (healthTips.length === 0) {
+                fetchHealthTips().then(() => render());
+            }
+        }
+
+        function renderChat(container) {
+            const messagesHtml = chatMessages.map(msg => `
+                <div class="message-container ${msg.role}">
+                    ${msg.role === 'assistant' ? '<div class="avatar"><i class="fas fa-user-md"></i></div>' : ''}
+                    <div class="message-bubble ${msg.role}">${msg.content}</div>
+                </div>
+            `).join('');
+
+            const welcomeHtml = chatMessages.length === 0 ? `
+                <div class="welcome-container">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="welcome-title">Welcome to HealthMate AI</div>
+                    <div class="welcome-text">
+                        Describe your symptoms or health concerns, and I'll provide helpful information and guidance.
+                    </div>
+                    <div class="suggestions-title">Try asking about:</div>
+                    <div class="suggestion-chip" onclick="setInput('I have a headache and fever')">
+                        I have a headache and fever
+                    </div>
+                    <div class="suggestion-chip" onclick="setInput('Feeling tired all the time')">
+                        Feeling tired all the time
+                    </div>
+                    <div class="suggestion-chip" onclick="setInput('Tips for better sleep')">
+                        Tips for better sleep
+                    </div>
+                </div>
+            ` : '';
+
+            container.innerHTML = `
+                <div class="header">
+                    <button class="back-button" onclick="navigate('home')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title-container">
+                        <div class="header-title">${currentSessionTitle}</div>
+                        <div class="header-subtitle">AI Health Assistant</div>
+                    </div>
+                    <div class="online-indicator"></div>
+                </div>
+                <div class="chat-container">
+                    <div class="messages-container" id="messagesContainer">
+                        ${welcomeHtml}
+                        ${messagesHtml}
+                        <div id="typingIndicator" style="display: none;">
+                            <div class="message-container assistant">
+                                <div class="avatar"><i class="fas fa-user-md"></i></div>
+                                <div class="typing-indicator">
+                                    <div class="spinner"></div>
+                                    <span class="typing-text">Analyzing...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-container">
+                        <div class="input-wrapper">
+                            <textarea 
+                                id="chatInput" 
+                                class="chat-input" 
+                                placeholder="Describe your symptoms..."
+                                rows="1"
+                                onkeydown="handleKeyDown(event)"
+                            ></textarea>
+                            <button class="send-button" id="sendButton" onclick="handleSend()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="input-disclaimer">Not medical advice. Consult a doctor for concerns.</div>
+                    </div>
+                </div>
+            `;
+            
+            scrollToBottom();
+        }
+
+        function renderHistory(container) {
+            const sessionsHtml = sessions.map(session => {
+                const lastMsg = session.messages && session.messages.length > 0 
+                    ? session.messages[session.messages.length - 1].content 
+                    : 'No messages';
+                const preview = lastMsg.length > 80 ? lastMsg.substring(0, 80) + '...' : lastMsg;
+                
+                return `
+                    <div class="session-card" onclick="navigate('chat', { sessionId: '${session.id}' })">
+                        <div class="session-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <div class="session-content">
+                            <div class="session-title">${session.title || 'Health Check'}</div>
+                            <div class="session-preview">${preview}</div>
+                            <div class="session-meta">
+                                <i class="fas fa-clock"></i>
+                                <span>${formatDate(session.updated_at || session.created_at)}</span>
+                                <span class="message-count">${session.messages?.length || 0} messages</span>
+                            </div>
+                        </div>
+                        <button class="delete-button" onclick="event.stopPropagation(); handleDeleteSession('${session.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            const emptyHtml = sessions.length === 0 ? `
+                <div class="empty-container">
+                    <div class="empty-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="empty-title">No Health Checks Yet</div>
+                    <div class="empty-text">
+                        Start a new health check to get AI-powered health insights
+                    </div>
+                    <button class="start-button" onclick="navigate('chat')">
+                        <i class="fas fa-plus-circle"></i>
+                        Start New Check
+                    </button>
+                </div>
+            ` : '';
+
+            container.innerHTML = `
+                <div class="header">
+                    <button class="back-button" onclick="navigate('home')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title">History</div>
+                    <button class="header-action" onclick="navigate('chat')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="history-container" id="historyContent">
+                    ${sessionsHtml || emptyHtml || '<div class="loading-container"><div class="loader"></div><div class="loading-text">Loading sessions...</div></div>'}
+                </div>
+            `;
+
+            if (sessions.length === 0) {
+                fetchSessions().then(() => {
+                    if (sessions.length > 0) render();
+                });
+            }
+        }
+
+        function renderMetrics(container) {
+            function createSlider(key, label, icon) {
+                const ranges = vitalRanges[key];
+                const value = vitals[key];
+                const color = getStatusColor(value, ranges);
+                const status = getStatusText(value, ranges);
+                const sliderClass = getSliderClass(value, ranges);
+                const displayValue = key === 'bodyTemperature' ? value.toFixed(1) : Math.round(value);
+
+                return `
+                    <div class="slider-card">
+                        <div class="slider-header">
+                            <div class="slider-label-row">
+                                <div class="slider-icon" style="background-color: ${color}20; color: ${color};">
+                                    <i class="fas ${icon}"></i>
+                                </div>
+                                <div class="slider-label">${label}</div>
+                            </div>
+                            <div class="status-badge" style="background-color: ${color}20; color: ${color};">
+                                ${status}
+                            </div>
+                        </div>
+                        <div class="value-container">
+                            <span class="value-text" style="color: ${color};">${displayValue}</span>
+                            <span class="unit-text">${ranges.unit}</span>
+                        </div>
+                        <div class="slider-container">
+                            <span class="range-text">${ranges.min}</span>
+                            <div class="slider-wrapper">
+                                <input 
+                                    type="range" 
+                                    class="${sliderClass}"
+                                    min="${ranges.min}" 
+                                    max="${ranges.max}" 
+                                    step="${ranges.step}" 
+                                    value="${value}"
+                                    oninput="updateVital('${key}', this.value)"
+                                >
+                            </div>
+                            <span class="range-text">${ranges.max}</span>
+                        </div>
+                        <div class="normal-text">Normal: ${ranges.normal.min}-${ranges.normal.max} ${ranges.unit}</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="header">
+                    <button class="back-button" onclick="navigate('home')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title">Vital Signs</div>
+                    <button class="header-action" onclick="navigate('metrics-history')">
+                        <i class="fas fa-chart-line"></i>
+                    </button>
+                </div>
+                <div class="metrics-container">
+                    <div class="info-card">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="info-text">
+                            Adjust the sliders to enter your current vital signs for AI-powered health analysis.
+                        </div>
+                    </div>
+
+                    ${createSlider('heartRate', 'Heart Rate', 'fa-heart')}
+                    ${createSlider('bodyTemperature', 'Body Temperature', 'fa-thermometer-half')}
+                    ${createSlider('systolicBP', 'Systolic BP', 'fa-wave-square')}
+                    ${createSlider('diastolicBP', 'Diastolic BP', 'fa-wave-square')}
+
+                    <div class="bp-summary-card">
+                        <div class="bp-summary-label">Blood Pressure Reading</div>
+                        <div class="bp-summary-value">
+                            ${Math.round(vitals.systolicBP)}/${Math.round(vitals.diastolicBP)}
+                            <span class="bp-summary-unit"> mmHg</span>
+                        </div>
+                    </div>
+
+                    <button class="analyze-button" id="analyzeBtn" onclick="handleAnalyzeVitals()">
+                        <i class="fas fa-microscope"></i>
+                        Analyze My Vitals
+                    </button>
+
+                    <div id="analysisResult"></div>
+
+                    <div class="disclaimer">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div class="disclaimer-text">
+                            This is not medical advice. Consult a healthcare professional for accurate diagnosis.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMetricsHistory(container) {
+            function getBPStatus(systolic, diastolic) {
+                if (systolic < 90 || diastolic < 60) return { text: 'Low', color: 'var(--accent-yellow)' };
+                if (systolic > 140 || diastolic > 90) return { text: 'High', color: 'var(--accent-red)' };
+                if (systolic > 120 || diastolic > 80) return { text: 'Elevated', color: 'var(--accent-yellow)' };
+                return { text: 'Normal', color: 'var(--accent-green)' };
+            }
+
+            const recordsHtml = metrics.map(record => {
+                const bpStatus = getBPStatus(record.systolic_bp, record.diastolic_bp);
+                return `
+                    <div class="metric-record-card">
+                        <div class="record-header">
+                            <span class="record-date">${formatDate(record.created_at)}</span>
+                            <span class="bp-badge" style="background-color: ${bpStatus.color}20; color: ${bpStatus.color};">
+                                ${bpStatus.text}
+                            </span>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <div class="metric-icon" style="background-color: rgba(239, 68, 68, 0.1); color: var(--accent-red);">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="metric-value">${record.heart_rate}</div>
+                                <div class="metric-label">bpm</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-icon" style="background-color: rgba(245, 158, 11, 0.1); color: var(--accent-yellow);">
+                                    <i class="fas fa-thermometer-half"></i>
+                                </div>
+                                <div class="metric-value">${record.body_temperature.toFixed(1)}</div>
+                                <div class="metric-label">°F</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-icon" style="background-color: rgba(139, 92, 246, 0.1); color: var(--accent-purple);">
+                                    <i class="fas fa-wave-square"></i>
+                                </div>
+                                <div class="metric-value">${record.systolic_bp}/${record.diastolic_bp}</div>
+                                <div class="metric-label">mmHg</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const emptyHtml = metrics.length === 0 ? `
+                <div class="empty-container">
+                    <div class="empty-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="empty-title">No Records Yet</div>
+                    <div class="empty-text">
+                        Start tracking your vital signs to see your health history here.
+                    </div>
+                    <button class="start-button" onclick="navigate('metrics')">
+                        <i class="fas fa-plus-circle"></i>
+                        Add Vitals
+                    </button>
+                </div>
+            ` : '';
+
+            container.innerHTML = `
+                <div class="header">
+                    <button class="back-button" onclick="navigate('metrics')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title">Vitals History</div>
+                    <button class="header-action" onclick="navigate('metrics')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="history-container" id="metricsHistoryContent">
+                    ${recordsHtml || emptyHtml || '<div class="loading-container"><div class="loader"></div><div class="loading-text">Loading history...</div></div>'}
+                </div>
+            `;
+
+            if (metrics.length === 0) {
+                fetchMetrics().then(() => {
+                    if (metrics.length > 0) render();
+                });
+            }
+        }
+
+        // ========== EVENT HANDLERS ==========
+        function setInput(text) {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = text;
+                input.focus();
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                handleSend();
+            }
+        }
+
+        async function handleSend() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            input.value = '';
+            
+            // Add user message
+            chatMessages.push({
+                id: Date.now().toString(),
+                role: 'user',
+                content: message,
+                timestamp: new Date().toISOString()
+            });
+            
+            render();
+            scrollToBottom();
+            
+            // Show typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) typingIndicator.style.display = 'block';
+            scrollToBottom();
+            
+            try {
+                const response = await sendChatMessage(message);
+                
+                // Add assistant message
+                chatMessages.push({
+                    id: Date.now().toString() + '_assistant',
+                    role: 'assistant',
+                    content: response,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) {
+                chatMessages.push({
+                    id: Date.now().toString() + '_error',
+                    role: 'assistant',
+                    content: 'I apologize, but I encountered an issue. Please try again.',
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            render();
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                const container = document.getElementById('messagesContainer');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 100);
+        }
+
+        async function handleDeleteSession(sessionId) {
+            if (confirm('Are you sure you want to delete this health check session?')) {
+                const success = await deleteSession(sessionId);
+                if (success) {
+                    sessions = sessions.filter(s => s.id !== sessionId);
+                    render();
+                } else {
+                    alert('Failed to delete session');
+                }
+            }
+        }
+
+        function updateVital(key, value) {
+            vitals[key] = parseFloat(value);
+            render();
+        }
+
+        async function handleAnalyzeVitals() {
+            const btn = document.getElementById('analyzeBtn');
+            const resultDiv = document.getElementById('analysisResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;"></div> Analyzing...';
+            
+            try {
+                // Save metrics first
+                await saveMetrics();
+                
+                // Get AI analysis
+                const analysis = await analyzeVitals();
+                
+                resultDiv.innerHTML = `
+                    <div class="analysis-card">
+                        <div class="analysis-header">
+                            <i class="fas fa-user-md"></i>
+                            <span class="analysis-title">AI Health Analysis</span>
+                        </div>
+                        <div class="analysis-text">${analysis}</div>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="analysis-card">
+                        <div class="analysis-header">
+                            <i class="fas fa-exclamation-triangle" style="color: var(--accent-red);"></i>
+                            <span class="analysis-title">Error</span>
+                        </div>
+                        <div class="analysis-text">Unable to analyze vitals. Please try again.</div>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-microscope"></i> Analyze My Vitals';
+            }
+        }
+
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchHealthTips();
+            fetchSessions();
+            fetchMetrics();
+            render();
+        });
+    </script>
+</body>
+</html>
