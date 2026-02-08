@@ -4,6 +4,8 @@ import numpy as np
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+import shap
+import matplotlib.pyplot as plt
 # 1. Page Configuration (This matches your design intent)
 st.set_page_config(page_title="HealthMate AI - Smart City Dashboard", layout="wide")
 
@@ -106,3 +108,29 @@ if st.button("Analyze My Vitals"):
             st.success("✅ NORMAL: Your vitals appear to be within the healthy range.")
     else:
         st.warning("Please click 'Train AI Model' above first to prepare the AI.")
+
+# --- STEP 3: EXPLAINABLE AI (SHAP) ---
+
+if st.button("Analyze My Vitals"):
+    if 'health_model' in st.session_state:
+        model = st.session_state['health_model']
+        input_data = pd.DataFrame([[hr, temp, sys, dia]], columns=features)
+        
+        # Prediction
+        prediction = model.predict(input_data)
+        
+        if prediction[0] == 1:
+            st.error("⚠️ ALERT: High Risk Detected.")
+            
+            # SHAP Logic: Why is it high risk?
+            explainer = shap.Explainer(model)
+            shap_values = explainer(input_data)
+            
+            st.write("### AI Reasoning (Why this prediction?)")
+            fig, ax = plt.subplots()
+            shap.plots.bar(shap_values[0], show=False)
+            st.pyplot(fig)
+            st.caption("Positive values (red) increase risk; negative values (blue) decrease it.")
+            
+        else:
+            st.success("✅ NORMAL: Vitals are within healthy range.")
