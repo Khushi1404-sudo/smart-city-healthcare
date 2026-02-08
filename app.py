@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 # 1. Page Configuration (This matches your design intent)
 st.set_page_config(page_title="HealthMate AI - Smart City Dashboard", layout="wide")
 
@@ -43,3 +45,33 @@ st.dataframe(data.head())
 # Show a quick statistic to verify the logic worked
 st.sidebar.success("Data Loaded Successfully!")
 st.sidebar.metric("Total Patients", len(data))
+
+# --- STEP 2: AI MODEL LOGIC ---
+
+st.header("🤖 AI Health Risk Analysis")
+
+# 1. Selecting the Features (Inputs) and Target (Output)
+# We use the numeric columns we processed in Step 1
+features = ['Heart Rate (bpm)', 'Temperature (°C)', 'Systolic', 'Diastolic']
+X = data[features]
+y = data['Target']
+
+# 2. Splitting the data
+# This simulates "historical data" to train and "new data" to test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Training the XGBoost Model
+# We'll create a simple button to "Train AI" so it doesn't run every single time
+if st.button("Train AI Model"):
+    model = XGBClassifier()
+    model.fit(X_train, y_train)
+    
+    # 4. Checking Accuracy
+    predictions = model.predict(X_test)
+    acc = accuracy_score(y_test, predictions)
+    
+    st.success(f"Model Trained! Accuracy: {acc:.2%}")
+    st.info("The AI is now ready to predict health risks based on urban sensor data.")
+    
+    # Save the model in the session so we can use it for the buttons later
+    st.session_state['health_model'] = model
